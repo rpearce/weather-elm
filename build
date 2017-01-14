@@ -1,0 +1,4 @@
+#!/bin/bash
+
+elm-make src/Main.elm --output public/elm.js
+./node_modules/.bin/uglifyjs public/elm.js --mangle --screw-ie8 -o elm.js -c dead_code -c unused

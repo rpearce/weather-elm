@@ -1,0 +1,14 @@
+{
+  "name": "weather-elm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "elm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Robert Pearce <me@robertwpearce.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "uglify-js": "^2.7.5"
+  }
+}
