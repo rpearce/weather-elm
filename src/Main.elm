@@ -1,7 +1,11 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (attribute, class, placeholder, type_, value)
+import Html.Events exposing (onInput)
+import Http
+import Json.Decode exposing (float, string, Decoder)
+import Json.Decode.Pipeline exposing (decode, required)
 
 
 main =
@@ -18,16 +22,10 @@ main =
 
 
 type alias Model =
-    { city : City
+    { currentCity : String
+    , currentWeather : CurrentWeather
     , days : List Day
     , input : String
-    }
-
-
-type alias City =
-    { name : String
-    , weather : String
-    , temperature : Int
     }
 
 
@@ -38,29 +36,81 @@ type alias Day =
     }
 
 
+type alias Coords =
+    ( Float, Float )
+
+
+type alias WeatherResult =
+    { currently : CurrentWeather
+    }
+
+
+type alias CurrentWeather =
+    { icon : String
+    , summary : String
+    , temperature : Float
+    }
+
+
 type Msg
-    = NoOp
+    = FetchWeather
+    | ReceiveWeather (Result Http.Error WeatherResult)
+    | NoOp
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, Cmd.none )
+    ( initialModel, fetchWeather ( 32.784618, -79.940918 ) )
 
 
 initialModel : Model
 initialModel =
-    { city = initialCity
-    , days = []
-    , input = initialCity.name
+    { currentCity = "Charleston, SC"
+    , currentWeather = initialCurrentWeather
+    , days = [ initialDay, initialDay, initialDay, initialDay, initialDay ]
+    , input = "Charleston, SC"
     }
 
 
-initialCity : City
-initialCity =
-    { name = "Charleston, SC"
-    , weather = "Chance of meatballs"
-    , temperature = 25
+initialCurrentWeather : CurrentWeather
+initialCurrentWeather =
+    { icon = "–"
+    , summary = "–"
+    , temperature = 0
     }
+
+
+initialDay : Day
+initialDay =
+    { name = "–"
+    , high = 0
+    , low = 0
+    }
+
+
+weatherUrl : Coords -> String
+weatherUrl ( lat, lng ) =
+    "http://localhost:9091/test.json"
+
+
+fetchWeather : Coords -> Cmd Msg
+fetchWeather coords =
+    Http.get (weatherUrl coords) decodeWeather
+        |> Http.send ReceiveWeather
+
+
+decodeWeather : Decoder WeatherResult
+decodeWeather =
+    decode WeatherResult
+        |> required "currently" currentWeatherDecoder
+
+
+currentWeatherDecoder : Decoder CurrentWeather
+currentWeatherDecoder =
+    decode CurrentWeather
+        |> required "icon" string
+        |> required "summary" string
+        |> required "temperature" float
 
 
 
@@ -70,7 +120,15 @@ initialCity =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
+        ReceiveWeather (Ok resp) ->
+            ( { model | currentWeather = resp.currently }
+            , Cmd.none
+            )
+
+        ReceiveWeather (Err _) ->
+            ( model, Cmd.none )
+
+        _ ->
             ( model, Cmd.none )
 
 
@@ -90,69 +148,25 @@ view model =
                     , value model.input
                     ]
                     []
-                , small [ class "city__weather" ] [ text model.city.weather ]
-                , div [ class "city__temp" ] [ text (toString model.city.temperature) ]
+                , small [ class "city__weather" ] [ text model.currentWeather.summary ]
+                , div [ class "city__temp" ] [ text (toString (round model.currentWeather.temperature)) ]
                 ]
             , section [ class "section--days" ]
                 [ ul [ class "days" ]
-                    [ li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    , li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    , li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    , li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    , li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    , li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    , li [ class "day" ]
-                        [ div [ class "day__name" ] [ text "Monday" ]
-                        , div [ class "day__icon" ] [ text "sun" ]
-                        , div [ class "day__temps" ]
-                            [ div [ class "day__high" ] [ text (toString 70) ]
-                            , div [ class "day__low" ] [ text (toString 62) ]
-                            ]
-                        ]
-                    ]
+                    (List.map dayView model.days)
                 ]
+            ]
+        ]
+
+
+dayView : Day -> Html msg
+dayView day =
+    li [ class "day" ]
+        [ div [ class "day__name" ] [ text "–" ]
+        , div [ class "day__icon" ] [ text "–" ]
+        , div [ class "day__temps" ]
+            [ div [ class "day__high" ] [ text (toString 0) ]
+            , div [ class "day__low" ] [ text (toString 0) ]
             ]
         ]
 
