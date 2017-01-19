@@ -9109,93 +9109,110 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
-var _user$project$Main$role = function (str) {
+var _user$project$DarkSky$weatherUrl = function (_p0) {
+	var _p1 = _p0;
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'http://localhost:5050/darksky/',
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Basics$toString(_p1._0),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				',',
+				_elm_lang$core$Basics$toString(_p1._1))));
+};
+var _user$project$DarkSky$initialCurrently = {icon: '–', summary: '–', temperature: 0};
+var _user$project$DarkSky$initialModel = {currently: _user$project$DarkSky$initialCurrently};
+var _user$project$DarkSky$Model = function (a) {
+	return {currently: a};
+};
+var _user$project$DarkSky$Currently = F3(
+	function (a, b, c) {
+		return {icon: a, summary: b, temperature: c};
+	});
+var _user$project$DarkSky$currentWeatherDecoder = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'temperature',
+	_elm_lang$core$Json_Decode$float,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'summary',
+		_elm_lang$core$Json_Decode$string,
+		A3(
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+			'icon',
+			_elm_lang$core$Json_Decode$string,
+			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$DarkSky$Currently))));
+var _user$project$DarkSky$decodeWeather = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'currently',
+	_user$project$DarkSky$currentWeatherDecoder,
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$DarkSky$Model));
+var _user$project$DarkSky$fetchWeather = F2(
+	function (toMessage, coords) {
+		return A2(
+			_elm_lang$http$Http$send,
+			toMessage,
+			A2(
+				_elm_lang$http$Http$get,
+				_user$project$DarkSky$weatherUrl(coords),
+				_user$project$DarkSky$decodeWeather));
+	});
+
+var _user$project$Messages$NoOp = {ctor: 'NoOp'};
+var _user$project$Messages$ReceiveWeather = function (a) {
+	return {ctor: 'ReceiveWeather', _0: a};
+};
+var _user$project$Messages$FetchWeather = function (a) {
+	return {ctor: 'FetchWeather', _0: a};
+};
+
+var _user$project$Commands$fetchWeather = function (coords) {
+	return A2(_user$project$DarkSky$fetchWeather, _user$project$Messages$ReceiveWeather, coords);
+};
+
+var _user$project$Models$initialModel = {input: 'Charleston, SC', weather: _user$project$DarkSky$initialModel};
+var _user$project$Models$Model = F2(
+	function (a, b) {
+		return {input: a, weather: b};
+	});
+
+var _user$project$Update$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		switch (_p0.ctor) {
+			case 'FetchWeather':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$Commands$fetchWeather(_p0._0)
+				};
+			case 'ReceiveWeather':
+				if (_p0._0.ctor === 'Ok') {
+					var weather = model.weather;
+					var newWeather = _elm_lang$core$Native_Utils.update(
+						weather,
+						{currently: _p0._0._0.currently});
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{weather: newWeather}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
+			default:
+				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+		}
+	});
+
+var _user$project$View$role = function (str) {
 	return A2(_elm_lang$html$Html_Attributes$attribute, 'role', str);
 };
-var _user$project$Main$dayView = function (day) {
-	return A2(
-		_elm_lang$html$Html$li,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('day'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('day__name'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('–'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('day__icon'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text('–'),
-						_1: {ctor: '[]'}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('day__temps'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('day__high'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(
-										_elm_lang$core$Basics$toString(0)),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('day__low'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(
-											_elm_lang$core$Basics$toString(0)),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}
-						}),
-					_1: {ctor: '[]'}
-				}
-			}
-		});
-};
-var _user$project$Main$view = function (model) {
+var _user$project$View$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -9222,7 +9239,7 @@ var _user$project$Main$view = function (model) {
 						_elm_lang$html$Html$header,
 						{
 							ctor: '::',
-							_0: _user$project$Main$role('header'),
+							_0: _user$project$View$role('header'),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$class('city'),
@@ -9262,7 +9279,7 @@ var _user$project$Main$view = function (model) {
 									},
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html$text(model.currentWeather.summary),
+										_0: _elm_lang$html$Html$text(model.weather.currently.summary),
 										_1: {ctor: '[]'}
 									}),
 								_1: {
@@ -9278,151 +9295,30 @@ var _user$project$Main$view = function (model) {
 											ctor: '::',
 											_0: _elm_lang$html$Html$text(
 												_elm_lang$core$Basics$toString(
-													_elm_lang$core$Basics$round(model.currentWeather.temperature))),
+													_elm_lang$core$Basics$round(model.weather.currently.temperature))),
 											_1: {ctor: '[]'}
 										}),
 									_1: {ctor: '[]'}
 								}
 							}
 						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$section,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('section--days'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$ul,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('days'),
-										_1: {ctor: '[]'}
-									},
-									A2(_elm_lang$core$List$map, _user$project$Main$dayView, model.days)),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
+					_1: {ctor: '[]'}
 				}),
 			_1: {ctor: '[]'}
 		});
 };
-var _user$project$Main$update = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		if (_p0.ctor === 'ReceiveWeather') {
-			if (_p0._0.ctor === 'Ok') {
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{currentWeather: _p0._0._0.currently}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			} else {
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-			}
-		} else {
-			return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
-		}
-	});
-var _user$project$Main$weatherUrl = function (_p1) {
-	var _p2 = _p1;
-	return 'http://localhost:9091/test.json';
-};
-var _user$project$Main$initialDay = {name: '–', high: 0, low: 0};
-var _user$project$Main$initialCurrentWeather = {icon: '–', summary: '–', temperature: 0};
-var _user$project$Main$initialModel = {
-	currentCity: 'Charleston, SC',
-	currentWeather: _user$project$Main$initialCurrentWeather,
-	days: {
-		ctor: '::',
-		_0: _user$project$Main$initialDay,
-		_1: {
-			ctor: '::',
-			_0: _user$project$Main$initialDay,
-			_1: {
-				ctor: '::',
-				_0: _user$project$Main$initialDay,
-				_1: {
-					ctor: '::',
-					_0: _user$project$Main$initialDay,
-					_1: {
-						ctor: '::',
-						_0: _user$project$Main$initialDay,
-						_1: {ctor: '[]'}
-					}
-				}
-			}
-		}
-	},
-	input: 'Charleston, SC'
-};
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {currentCity: a, currentWeather: b, days: c, input: d};
-	});
-var _user$project$Main$Day = F3(
-	function (a, b, c) {
-		return {name: a, high: b, low: c};
-	});
-var _user$project$Main$WeatherResult = function (a) {
-	return {currently: a};
-};
-var _user$project$Main$CurrentWeather = F3(
-	function (a, b, c) {
-		return {icon: a, summary: b, temperature: c};
-	});
-var _user$project$Main$currentWeatherDecoder = A3(
-	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'temperature',
-	_elm_lang$core$Json_Decode$float,
-	A3(
-		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-		'summary',
-		_elm_lang$core$Json_Decode$string,
-		A3(
-			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-			'icon',
-			_elm_lang$core$Json_Decode$string,
-			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Main$CurrentWeather))));
-var _user$project$Main$decodeWeather = A3(
-	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
-	'currently',
-	_user$project$Main$currentWeatherDecoder,
-	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Main$WeatherResult));
-var _user$project$Main$NoOp = {ctor: 'NoOp'};
-var _user$project$Main$ReceiveWeather = function (a) {
-	return {ctor: 'ReceiveWeather', _0: a};
-};
-var _user$project$Main$fetchWeather = function (coords) {
-	return A2(
-		_elm_lang$http$Http$send,
-		_user$project$Main$ReceiveWeather,
-		A2(
-			_elm_lang$http$Http$get,
-			_user$project$Main$weatherUrl(coords),
-			_user$project$Main$decodeWeather));
+
+var _user$project$Main$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
 };
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: _user$project$Main$initialModel,
-	_1: _user$project$Main$fetchWeather(
+	_0: _user$project$Models$initialModel,
+	_1: _user$project$Commands$fetchWeather(
 		{ctor: '_Tuple2', _0: 32.784618, _1: -79.940918})
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
-	{
-		init: _user$project$Main$init,
-		view: _user$project$Main$view,
-		update: _user$project$Main$update,
-		subscriptions: _elm_lang$core$Basics$always(_elm_lang$core$Platform_Sub$none)
-	})();
-var _user$project$Main$FetchWeather = {ctor: 'FetchWeather'};
+	{init: _user$project$Main$init, view: _user$project$View$view, update: _user$project$Update$update, subscriptions: _user$project$Main$subscriptions})();
 
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
