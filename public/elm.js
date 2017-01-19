@@ -9113,7 +9113,7 @@ var _user$project$DarkSky$weatherUrl = function (_p0) {
 	var _p1 = _p0;
 	return A2(
 		_elm_lang$core$Basics_ops['++'],
-		'http://localhost:5050/darksky/',
+		'http://localhost:5050/forecast/',
 		A2(
 			_elm_lang$core$Basics_ops['++'],
 			_elm_lang$core$Basics$toString(_p1._0),

@@ -54,7 +54,7 @@ initialCurrently =
 
 weatherUrl : Coords -> String
 weatherUrl ( lat, lng ) =
-    "http://localhost:5050/darksky/"
+    "http://localhost:5050/forecast/"
         ++ (toString lat)
         ++ ","
         ++ (toString lng)
