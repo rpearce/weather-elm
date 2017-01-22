@@ -1,7 +1,6 @@
 module DarkSky
     exposing
         ( Model
-        , Coords
         , initialModel
         , fetchWeather
         )
@@ -11,7 +10,7 @@ import Json.Decode exposing (float, string, Decoder)
 import Json.Decode.Pipeline exposing (decode, required)
 
 
--- Types
+-- Models
 
 
 type alias Model =
@@ -30,10 +29,6 @@ type alias Coords =
     ( Float, Float )
 
 
-
--- Init
-
-
 initialModel : Model
 initialModel =
     { currently = initialCurrently
@@ -49,7 +44,7 @@ initialCurrently =
 
 
 
--- Http
+-- Commands
 
 
 weatherUrl : Coords -> String
@@ -60,10 +55,7 @@ weatherUrl ( lat, lng ) =
         ++ (toString lng)
 
 
-
---fetchWeather : Result Http.Error Model -> msg -> Coords -> Cmd msg
-
-
+fetchWeather : (Result Http.Error Model -> msg) -> Coords -> Cmd msg
 fetchWeather toMessage coords =
     Http.get (weatherUrl coords) decodeWeather
         |> Http.send toMessage

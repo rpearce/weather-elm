@@ -1,16 +1,27 @@
-module Models exposing (..)
+module Models
+    exposing
+        ( Model
+        , Coords
+        , initialModel
+        )
 
 import DarkSky
 
 
 type alias Model =
-    { input : String
+    { address : String
+    , coords : Coords
     , weather : DarkSky.Model
     }
 
 
+type alias Coords =
+    ( Float, Float )
+
+
 initialModel : Model
 initialModel =
-    { input = "Charleston, SC"
+    { address = "Auckland, NZ"
+    , coords = ( 0, 0 )
     , weather = DarkSky.initialModel
     }

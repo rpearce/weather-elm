@@ -9160,6 +9160,80 @@ var _user$project$DarkSky$fetchWeather = F2(
 				_user$project$DarkSky$decodeWeather));
 	});
 
+var _user$project$Models$initialModel = {
+	address: 'Auckland, NZ',
+	coords: {ctor: '_Tuple2', _0: 0, _1: 0},
+	weather: _user$project$DarkSky$initialModel
+};
+var _user$project$Models$Model = F3(
+	function (a, b, c) {
+		return {address: a, coords: b, weather: c};
+	});
+
+var _user$project$Geocoding$geocodingUrl = function (address) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		'https://maps.googleapis.com/maps/api/geocode/json?address=',
+		A2(_elm_lang$core$Basics_ops['++'], address, '&key=AIzaSyAoOtzqsBtVZrUq7H-lzeQuXhrYQMBmszw'));
+};
+var _user$project$Geocoding$initialGeocodingResult = {
+	geometry: {
+		location: {lat: 0, lng: 0}
+	}
+};
+var _user$project$Geocoding$Model = F2(
+	function (a, b) {
+		return {status: a, results: b};
+	});
+var _user$project$Geocoding$GeocodingResult = function (a) {
+	return {geometry: a};
+};
+var _user$project$Geocoding$Geometry = function (a) {
+	return {location: a};
+};
+var _user$project$Geocoding$Location = F2(
+	function (a, b) {
+		return {lat: a, lng: b};
+	});
+var _user$project$Geocoding$decodeLocation = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'lng',
+	_elm_lang$core$Json_Decode$float,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'lat',
+		_elm_lang$core$Json_Decode$float,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Geocoding$Location)));
+var _user$project$Geocoding$decodeGeometry = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'location',
+	_user$project$Geocoding$decodeLocation,
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Geocoding$Geometry));
+var _user$project$Geocoding$decodeGeocodingResult = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'geometry',
+	_user$project$Geocoding$decodeGeometry,
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Geocoding$GeocodingResult));
+var _user$project$Geocoding$decodeGeocoding = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'results',
+	_elm_lang$core$Json_Decode$list(_user$project$Geocoding$decodeGeocodingResult),
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'status',
+		_elm_lang$core$Json_Decode$string,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_user$project$Geocoding$Model)));
+var _user$project$Geocoding$sendAddress = F2(
+	function (toMessage, address) {
+		return A2(
+			_elm_lang$http$Http$send,
+			toMessage,
+			A2(
+				_elm_lang$http$Http$get,
+				_user$project$Geocoding$geocodingUrl(address),
+				_user$project$Geocoding$decodeGeocoding));
+	});
+
 var _user$project$Messages$NoOp = {ctor: 'NoOp'};
 var _user$project$Messages$ReceiveWeather = function (a) {
 	return {ctor: 'ReceiveWeather', _0: a};
@@ -9167,21 +9241,68 @@ var _user$project$Messages$ReceiveWeather = function (a) {
 var _user$project$Messages$FetchWeather = function (a) {
 	return {ctor: 'FetchWeather', _0: a};
 };
+var _user$project$Messages$ReceiveGeocoding = function (a) {
+	return {ctor: 'ReceiveGeocoding', _0: a};
+};
+var _user$project$Messages$GeocodeAddress = function (a) {
+	return {ctor: 'GeocodeAddress', _0: a};
+};
+var _user$project$Messages$SendAddress = {ctor: 'SendAddress'};
+var _user$project$Messages$UpdateAddress = function (a) {
+	return {ctor: 'UpdateAddress', _0: a};
+};
 
 var _user$project$Commands$fetchWeather = function (coords) {
 	return A2(_user$project$DarkSky$fetchWeather, _user$project$Messages$ReceiveWeather, coords);
 };
-
-var _user$project$Models$initialModel = {input: 'Charleston, SC', weather: _user$project$DarkSky$initialModel};
-var _user$project$Models$Model = F2(
-	function (a, b) {
-		return {input: a, weather: b};
-	});
+var _user$project$Commands$geocodeAddress = function (address) {
+	return A2(_user$project$Geocoding$sendAddress, _user$project$Messages$ReceiveGeocoding, address);
+};
 
 var _user$project$Update$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
 		switch (_p0.ctor) {
+			case 'UpdateAddress':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{address: _p0._0, weather: _user$project$DarkSky$initialModel}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SendAddress':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$Commands$geocodeAddress(model.address)
+				};
+			case 'GeocodeAddress':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$Commands$geocodeAddress(_p0._0)
+				};
+			case 'ReceiveGeocoding':
+				if (_p0._0.ctor === 'Ok') {
+					var result = A2(
+						_elm_lang$core$Maybe$withDefault,
+						_user$project$Geocoding$initialGeocodingResult,
+						_elm_lang$core$List$head(_p0._0._0.results));
+					var location = result.geometry.location;
+					var newModel = _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							coords: {ctor: '_Tuple2', _0: location.lat, _1: location.lng}
+						});
+					return {
+						ctor: '_Tuple2',
+						_0: newModel,
+						_1: _user$project$Commands$fetchWeather(newModel.coords)
+					};
+				} else {
+					return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+				}
 			case 'FetchWeather':
 				return {
 					ctor: '_Tuple2',
@@ -9249,25 +9370,40 @@ var _user$project$View$view = function (model) {
 						{
 							ctor: '::',
 							_0: A2(
-								_elm_lang$html$Html$input,
+								_elm_lang$html$Html$form,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$type_('text'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('city__nameInput'),
-										_1: {
+									_0: _elm_lang$html$Html_Events$onSubmit(_user$project$Messages$SendAddress),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$input,
+										{
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$placeholder('City'),
+											_0: _elm_lang$html$Html_Attributes$type_('text'),
 											_1: {
 												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$value(model.input),
-												_1: {ctor: '[]'}
+												_0: _elm_lang$html$Html_Attributes$class('city__nameInput'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$placeholder('City'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$value(model.address),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Events$onInput(_user$project$Messages$UpdateAddress),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
 											}
-										}
-									}
-								},
-								{ctor: '[]'}),
+										},
+										{ctor: '[]'}),
+									_1: {ctor: '[]'}
+								}),
 							_1: {
 								ctor: '::',
 								_0: A2(
@@ -9314,8 +9450,7 @@ var _user$project$Main$subscriptions = function (model) {
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
 	_0: _user$project$Models$initialModel,
-	_1: _user$project$Commands$fetchWeather(
-		{ctor: '_Tuple2', _0: 32.784618, _1: -79.940918})
+	_1: _user$project$Commands$geocodeAddress(_user$project$Models$initialModel.address)
 };
 var _user$project$Main$main = _elm_lang$html$Html$program(
 	{init: _user$project$Main$init, view: _user$project$View$view, update: _user$project$Update$update, subscriptions: _user$project$Main$subscriptions})();

@@ -10,9 +10,7 @@ import Commands exposing (..)
 
 init : ( Model, Cmd Msg )
 init =
-    ( Models.initialModel
-    , fetchWeather ( 32.784618, -79.940918 )
-    )
+    ( Models.initialModel, geocodeAddress initialModel.address )
 
 
 subscriptions : Model -> Sub Msg
